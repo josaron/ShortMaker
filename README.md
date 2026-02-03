@@ -79,18 +79,67 @@ Time      | Script / Voiceover                                    | Source Times
 
 ## Deployment
 
-### Vercel
+### Option 1: Container Deployment (Recommended)
 
-1. Connect your GitHub repository to Vercel
-2. Add `BLOB_READ_WRITE_TOKEN` to environment variables
-3. Enable Fluid Compute for the `/api/process` route (Settings > Functions)
-4. Deploy
+Since this app requires FFmpeg and Python with OpenCV/MediaPipe for video processing, you'll need container-based deployment. Here are your options:
 
-### Server Requirements for Video Processing
+#### Railway (Recommended for simplicity)
 
-The `/api/process` route requires:
-- FFmpeg binary available in PATH
-- Python 3 with: `pip install opencv-python mediapipe`
+1. Create an account at [railway.app](https://railway.app)
+2. Create a new project and select "Deploy from GitHub repo"
+3. Connect your repository
+4. Add environment variables:
+   - `BLOB_READ_WRITE_TOKEN` - Get from [Vercel Blob Dashboard](https://vercel.com/dashboard/stores)
+5. Railway will auto-detect the Dockerfile and deploy
+
+#### Render
+
+1. Create an account at [render.com](https://render.com)
+2. Create a new "Web Service" and connect your GitHub repo
+3. Select "Docker" as the runtime
+4. Add environment variable: `BLOB_READ_WRITE_TOKEN`
+5. Deploy
+
+#### Fly.io
+
+```bash
+# Install Fly CLI
+brew install flyctl
+
+# Login and launch
+fly auth login
+fly launch
+
+# Set secrets
+fly secrets set BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxx
+
+# Deploy
+fly deploy
+```
+
+### Option 2: Vercel (Frontend) + External Processing
+
+If you prefer Vercel for the frontend, you can split the architecture:
+
+1. Deploy the Next.js app to Vercel normally
+2. Host the video processing API separately on Railway/Render
+3. Update the `/api/process` route to proxy to your external service
+
+### Setting Up BLOB_READ_WRITE_TOKEN
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Navigate to **Storage** → **Create Database** → **Blob**
+3. Create a new Blob store (or use existing)
+4. Go to the store settings and copy the **Read/Write Token**
+5. Add `BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxx` to your deployment platform's environment variables
+
+### Server Requirements
+
+The video processing requires:
+- **FFmpeg** + **ffprobe** in PATH
+- **Python 3** with `opencv-python-headless` and `mediapipe`
+
+The included `Dockerfile` handles all of these dependencies automatically.
 
 ## Project Structure
 

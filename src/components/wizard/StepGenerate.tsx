@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { upload } from '@vercel/blob/client';
 import { useAppStore } from '@/store/useAppStore';
 import { processSegments, calculateSegmentDurations } from '@/lib/script-parser';
 import { generateTTSForSegments } from '@/lib/piper';
@@ -38,21 +39,23 @@ export function StepGenerate() {
     setStatusMessage('Uploading video...');
 
     try {
-      // Step 1: Upload video to Vercel Blob
-      const formData = new FormData();
-      formData.append('file', videoFile);
+      // Step 1: Upload video directly to Vercel Blob (client-side upload)
+      // This bypasses the 4.5MB serverless function body limit
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/e34524eb-dd90-425d-9430-4761a858d5c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'StepGenerate.tsx:45',message:'Client upload starting',data:{fileName:videoFile.name,fileSize:videoFile.size,fileSizeMB:(videoFile.size/(1024*1024)).toFixed(2),fileType:videoFile.type},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1-H2',runId:'post-fix'})}).catch(()=>{});
+      // #endregion
 
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const blob = await upload(videoFile.name, videoFile, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+        multipart: true, // Enable multipart for large files (up to 5TB)
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload video');
-      }
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/e34524eb-dd90-425d-9430-4761a858d5c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'StepGenerate.tsx:55',message:'Client upload completed',data:{url:blob.url,pathname:blob.pathname},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1',runId:'post-fix'})}).catch(()=>{});
+      // #endregion
 
-      const { url } = await uploadResponse.json();
-      setVideoUrl(url);
+      setVideoUrl(blob.url);
       setProgress(20);
 
       // Step 2: Process segments
