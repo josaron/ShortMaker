@@ -3,25 +3,42 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #f8fafc; /* slate-50 */
+  --surface: #ffffff;
+  --border: #e2e8f0; /* slate-200 */
+  --text: #0f172a; /* slate-900 */
+  --text-muted: #64748b; /* slate-500 */
+  --accent: #4f46e5; /* indigo-600 */
+  --accent-hover: #4338ca; /* indigo-700 */
+  --accent-muted: #e0e7ff; /* indigo-100 */
 }
 
 body {
-  color: var(--foreground);
+  color: var(--text);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-[var(--accent)] text-white rounded-lg font-medium transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] rounded-lg font-medium transition-colors hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .card {
+    @apply bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 shadow-sm;
+  }
+  
+  .input {
+    @apply w-full px-3 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent;
   }
 }
